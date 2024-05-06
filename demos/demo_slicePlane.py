@@ -3,8 +3,11 @@ import bpy
 import os
 import numpy as np
 cwd = os.getcwd()
+import sys
+from pathlib import Path
+import trimesh
 
-outputPath = os.path.join(cwd, './demo_slicePlane.png') 
+# outputPath = os.path.join(cwd, './demo_slicePlane.png') 
 
 ## initialize blender
 imgRes_x = 480 
@@ -14,23 +17,46 @@ exposure = 1.5
 bt.blenderInit(imgRes_x, imgRes_y, numSamples, exposure)
 
 ## read mesh (decoration for the scene)
-location = (1.12, -0.14, 0) 
-rotation = (90, 0, 227)
-scale = (1.5,1.5,1.5) 
-meshPath = '../meshes/spot.obj'
+location = (0.77, 0.01, 0.89021)
+rotation = (90, 0, 180)
+scale = (0.0001, 0.0001, 0.0001) 
+
+mesh_path = str(Path(sys.argv[-2]))
+save_path = Path("/local-scratch2/asa409/data/INR_paper_plots/")
+save_path.mkdir(parents=True, exist_ok=True)
+save_name = save_path / (Path(mesh_path).stem + f"_{sys.argv[-1]}.png")
+meshPath = str(Path(mesh_path))
+sdfPath = str(Path(meshPath).with_suffix('.npz'))
+sdfPath = "../sdf_slice.obj"
+outputPath = str(save_name)
+#meshPath = '../meshes/spot.obj'
 mesh = bt.readMesh(meshPath, location, rotation, scale)
 bpy.ops.object.shade_smooth() 
-bt.subdivision(mesh, level = 2)
+bt.subdivision(mesh, level = 1)
 meshColor = bt.colorObj(bt.derekBlue, 0.5, 1.0, 1.0, 0.0, 2.0)
 bt.setMat_plastic(mesh, meshColor)
 
 ## read slice plane
-meshPath = '../meshes/slice_plane.obj'
+# meshPath = '../meshes/slice_plane.obj'
 mesh = bt.readMesh(meshPath, location, rotation, scale)
 bpy.ops.object.shade_flat() 
 bt.subdivision(mesh, level = 0)
 
-scalar = np.load("../meshes/slice_plane_scalar.npy")
+tri_mesh = trimesh.load_mesh(meshPath)
+length = tri_mesh.bounding_box.extents.max()
+scale = 2.0 / length
+center = tri_mesh.bounding_box.centroid
+tri_mesh.vertices -= tri_mesh.bounding_box.centroid
+tri_mesh.vertices *= 2.0 / tri_mesh.bounding_box.extents.max()
+from pysdf import SDF
+sdf = SDF(tri_mesh.vertices, tri_mesh.faces)
+points = trimesh.load(sdfPath)
+scalar = sdf(points.vertices)
+# scalar = sdf(tri_mesh.vertices + np.random.randn(*tri_mesh.vertices.shape) * 1e-1)
+# scalar
+
+#scalar = np.load("../meshes/slice_plane_scalar.npy")
+# scalar = np.load(sdfPath, allow_pickle=True)['arr_0']
 mesh = bt.vertexScalarToUV(mesh, scalar)
 
 useless = (0,0,0,1)

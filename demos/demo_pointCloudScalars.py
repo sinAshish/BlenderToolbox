@@ -5,6 +5,7 @@ import numpy as np
 cwd = os.getcwd()
 
 outputPath = os.path.join(cwd, './demo_pointCloudScalars.png') # make it abs path for windows
+outputPath = os.path.join(cwd, './g1d1_sampled_pcd.png') # make it abs path for windows
 
 ## initialize blender
 imgRes_x = 480 
@@ -17,11 +18,15 @@ bt.blenderInit(imgRes_x, imgRes_y, numSamples, exposure)
 location = (0,0,0.67)
 rotation = (0,0,0) 
 scale = (.5,.5,.5)
-P = np.array([[1,1,1],[-1,1,-1],[-1,-1,1],[1,-1,-1]], dtype=np.float32) # point location
+import trimesh
+points = trimesh.load("/localhome/asa409/projects/vascular-tree-lifting/src/baselines/PIFu/g1d1_sampled_point_cloud.ply")
+P = np.asarray(points.vertices)
+PC = np.asarray(points.colors)
+#P = np.array([[1,1,1],[-1,1,-1],[-1,-1,1],[1,-1,-1]], dtype=np.float32) # point location
 mesh = bt.readNumpyPoints(P,location,rotation,scale)
 
 ## add color to point cloud
-PC = np.array([0.,1.,2.,3.]) # point colors
+#PC = np.array([0.,1.,2.,3.]) # point colors
 color_map = 'default'
 mesh = bt.setPointScalars(mesh, PC, color_map)
 

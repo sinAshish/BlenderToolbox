@@ -1,4 +1,7 @@
 # **NEW!!** Installation with pip
+
+**UPDATE** This is a mod of the original repo, where I have simply modified the scripts so that the meshes are provided as CLI input, and render it in a canonicalized space.
+
 To use this toolbox, please make sure to install [Blender](https://www.blender.org) (version 4.0.0) and then install the toolbox with the following commands
 ```
 conda create -n blender python=3.10
